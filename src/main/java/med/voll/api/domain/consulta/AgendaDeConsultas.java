@@ -1,6 +1,6 @@
 package med.voll.api.domain.consulta;
 
-import med.voll.api.domain.erro.ValidacaoExpection;
+import med.voll.api.domain.erro.ValidacaoException;
 import med.voll.api.domain.medico.Medico;
 import med.voll.api.domain.medico.MedicoRepository;
 import med.voll.api.domain.paciente.PacienteRepository;
@@ -23,15 +23,15 @@ public class AgendaDeConsultas {
 
 
         if (!pacienteRepository.existsById(dados.idPaciente())) {
-            throw new ValidacaoExpection("Id do paciente informado não existe!");
+            throw new ValidacaoException("Id do paciente informado não existe!");
         }
 
         if (dados.idMedico() != null && !medicoRepository.existsById(dados.idMedico())) {
-            throw new ValidacaoExpection("Id do medico informado não existe!");
+            throw new ValidacaoException("Id do medico informado não existe!");
         }
         var paciente = pacienteRepository.getReferenceById(dados.idPaciente());
         var medico = escolherMedico(dados);
-        var consulta = new Consulta(null, medico, paciente, dados.data());
+        var consulta = new Consulta(null, medico, paciente, dados.data(), null);
         consultaRepository.save(consulta);
 
     }
@@ -41,10 +41,18 @@ public class AgendaDeConsultas {
             return medicoRepository.getReferenceById(dados.idMedico());
         }
         if (dados.especialidade() == null){
-            throw new ValidacaoExpection("Especialidade é obrigatoria quando o medico não for escolhido!");
+            throw new ValidacaoException("Especialidade é obrigatoria quando o medico não for escolhido!");
         }
 
         return medicoRepository.escolherMedicoAleatorioDisponivel(dados.especialidade(), dados.data());
+    }
+    public void cancelar(DadosCancelamentoConsulta dados) {
+        if (!consultaRepository.existsById(dados.idConsulta())) {
+            throw new ValidacaoException("Id da consulta informado não existe!");
+        }
+
+        var consulta = consultaRepository.getReferenceById(dados.idConsulta());
+        consulta.cancelar(dados.motivo());
     }
 
 }
