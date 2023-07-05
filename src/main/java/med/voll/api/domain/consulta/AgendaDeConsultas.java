@@ -19,24 +19,32 @@ public class AgendaDeConsultas {
     @Autowired
     private PacienteRepository pacienteRepository;
 
-    public void agendar(DadosAgendamentoConsulta dados){
+    public void agendar(DadosAgendamentoConsulta dados) {
 
 
+        if (!pacienteRepository.existsById(dados.idPaciente())) {
+            throw new ValidacaoExpection("Id do paciente informado não existe!");
+        }
 
-       if (!pacienteRepository.existsById(dados.idPaciente())){
-           throw new ValidacaoExpection("Id do paciente informado não existe!");
-       }
-
-       if (dados.idMedico() != null && !medicoRepository.existsById(dados.idMedico())){
-           throw new ValidacaoExpection("Id do medico informado não existe!");
-       }
-        var paciente = pacienteRepository.findById(dados.idPaciente()).get();
+        if (dados.idMedico() != null && !medicoRepository.existsById(dados.idMedico())) {
+            throw new ValidacaoExpection("Id do medico informado não existe!");
+        }
+        var paciente = pacienteRepository.getReferenceById(dados.idPaciente());
         var medico = escolherMedico(dados);
-        var consulta = new Consulta(null,medico, paciente,dados.data());
+        var consulta = new Consulta(null, medico, paciente, dados.data());
         consultaRepository.save(consulta);
 
     }
 
     private Medico escolherMedico(DadosAgendamentoConsulta dados) {
+        if (dados.idMedico() != null) {
+            return medicoRepository.getReferenceById(dados.idMedico());
+        }
+        if (dados.especialidade() == null){
+            throw new ValidacaoExpection("Especialidade é obrigatoria quando o medico não for escolhido!");
+        }
+
+        return medicoRepository.escolherMedicoAleatorioDisponivel(dados.especialidade(), dados.data());
     }
+
 }
