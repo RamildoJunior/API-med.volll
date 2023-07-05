@@ -27,7 +27,7 @@ public class PacienteController {
     @PostMapping
     @Transactional
     public ResponseEntity cadastrar(@RequestBody @Valid CadastroPaciente dados, UriComponentsBuilder uriBuilder) {
-        var paciente = new Paciente((dados));
+        var paciente = new Paciente(dados);
         repository.save(paciente);
 
         var uri = uriBuilder.path("/pacientes/{id}").buildAndExpand(paciente.getId()).toUri() ;
